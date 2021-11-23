@@ -610,7 +610,7 @@ impl Block for Music {
                 id if id == self.play_id => "PlayPause",
                 id if id == self.next_id => "Next",
                 id if id == self.prev_id => "Previous",
-                id if id == self.id => "",
+                id if id == self.id => "PlayPause",
                 id if id == self.collapsed_id => "",
                 _ => return Ok(()),
             };
@@ -654,7 +654,19 @@ impl Block for Music {
                 //                    com.github.altdesktop.playerctld \
                 //                    Shift
                 MouseButton::Right => {
-                    if (event_id == self.id || event_id == self.collapsed_id) && players.len() > 0 {
+                    if event_id == self.id && players.len() > 0{
+                        let metadata = players.first().unwrap();
+                        let m = Message::new_method_call(
+                            metadata.interface_name.clone(),
+                            "/org/mpris/MediaPlayer2",
+                            "org.mpris.MediaPlayer2.Player",
+                            "Next",
+                        )
+                            .block_error("music", "failed to create D-Bus method call")?;
+                        self.dbus_conn
+                            .send(m)
+                            .block_error("music", "failed to call method via D-Bus")?;
+                    } else if (event_id == self.collapsed_id) && players.len() > 0 {
                         players.rotate_left(1);
                         self.send.send(Task {
                             id: self.id,

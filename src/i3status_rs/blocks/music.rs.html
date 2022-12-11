@@ -498,10 +498,6 @@
 <span id="498">498</span>
 <span id="499">499</span>
 <span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The current song title and artist
 //!
 //! Also provides buttons for play/pause, previous and next.
@@ -808,11 +804,7 @@
                             }
                         }
                         MouseButton::Right =&gt; {
-                            <span class="kw">if </span>i + <span class="number">1 </span>&lt; players.len() {
-                                cur_player = <span class="prelude-val">Some</span>(i + <span class="number">1</span>);
-                            } <span class="kw">else </span>{
-                                cur_player = <span class="prelude-val">Some</span>(<span class="number">0</span>);
-                            }
+                            players[i].next().<span class="kw">await</span><span class="question-mark">?</span>;
                         }
                         MouseButton::WheelUp =&gt; {
                             players[i].seek(config.seek_step).<span class="kw">await</span><span class="question-mark">?</span>;

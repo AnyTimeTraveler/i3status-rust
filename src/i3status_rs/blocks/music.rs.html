@@ -800,7 +800,7 @@
                                 <span class="prelude-val">Some</span>(PLAY_PAUSE_BTN) =&gt; player.play_pause().<span class="kw">await</span><span class="question-mark">?</span>,
                                 <span class="prelude-val">Some</span>(NEXT_BTN) =&gt; player.next().<span class="kw">await</span><span class="question-mark">?</span>,
                                 <span class="prelude-val">Some</span>(PREV_BTN) =&gt; player.prev().<span class="kw">await</span><span class="question-mark">?</span>,
-                                <span class="kw">_ </span>=&gt; (),
+                                <span class="kw">_ </span>=&gt; player.play_pause().<span class="kw">await</span><span class="question-mark">?</span>,
                             }
                         }
                         MouseButton::Right =&gt; {

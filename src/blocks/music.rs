@@ -300,7 +300,7 @@ pub async fn run(config: Config, mut api: CommonApi) -> Result<()> {
                                 Some(PLAY_PAUSE_BTN) => player.play_pause().await?,
                                 Some(NEXT_BTN) => player.next().await?,
                                 Some(PREV_BTN) => player.prev().await?,
-                                _ => (),
+                                _ => player.play_pause().await?,
                             }
                         }
                         MouseButton::Right => {

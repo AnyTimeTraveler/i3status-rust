@@ -304,11 +304,7 @@ pub async fn run(config: Config, mut api: CommonApi) -> Result<()> {
                             }
                         }
                         MouseButton::Right => {
-                            if i + 1 < players.len() {
-                                cur_player = Some(i + 1);
-                            } else {
-                                cur_player = Some(0);
-                            }
+                            players[i].next().await?;
                         }
                         MouseButton::WheelUp => {
                             players[i].seek(config.seek_step).await?;

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["events_stream",""],["unprocessed_events_stream",""]],"struct":[["I3BarEvent",""]]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["__Field"],"fn":["events_stream","unprocessed_events_stream"],"struct":["I3BarEvent","I3BarEventRaw","__FieldVisitor","__Visitor"]};

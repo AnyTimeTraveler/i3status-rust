@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ColorOrLink",""]],"mod":[["color",""],["separator",""]],"struct":[["Theme",""],["ThemeOverrides",""],["ThemeUserConfig",""]]};
+window.SIDEBAR_ITEMS = {"constant":["FIELDS"],"enum":["ColorOrLink","__Field"],"macro":["apply"],"mod":["color","separator"],"struct":["Theme","ThemeOverrides","ThemeUserConfig","__FieldVisitor","__Visitor"]};

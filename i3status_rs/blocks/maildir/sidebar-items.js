@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["MailType",""]],"fn":[["run",""]],"struct":[["Config",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS","VARIANTS"],"enum":["MailType","__Field"],"fn":["run"],"struct":["Config","__FieldVisitor","__Visitor"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["BatteryDriver",""],["BatteryStatus",""],["DeviceName","`Option<Regex>`, but more intuitive"]],"fn":[["run",""]],"mod":[["apc_ups",""],["sysfs",""],["upower",""]],"struct":[["BatteryInfo",""],["Config",""]],"trait":[["BatteryDevice",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS","VARIANTS"],"enum":["BatteryDriver","BatteryStatus","DeviceName","__Field"],"fn":["run"],"mod":["apc_ups","sysfs","upower"],"struct":["BatteryInfo","Config","__FieldVisitor","__Visitor"],"trait":["BatteryDevice"]};

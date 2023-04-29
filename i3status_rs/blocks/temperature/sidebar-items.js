@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["DEFAULT_GOOD",""],["DEFAULT_IDLE",""],["DEFAULT_INFO",""],["DEFAULT_WARN",""]],"enum":[["TemperatureScale",""]],"fn":[["run",""]],"struct":[["Config",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","DEFAULT_GOOD","DEFAULT_IDLE","DEFAULT_INFO","DEFAULT_WARN","FIELDS","VARIANTS"],"enum":["TemperatureScale","__Field"],"fn":["run"],"struct":["Config","__FieldVisitor","__Visitor"]};

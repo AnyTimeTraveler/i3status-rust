@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Driver",""]],"fn":[["run",""]],"struct":[["Config",""],["Info",""],["Ristate",""],["SwayIpc",""]],"trait":[["Backend",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS","VARIANTS"],"enum":["Driver","__Field"],"fn":["run"],"struct":["Config","Info","Ristate","RistateOuput","SwayIpc","__FieldVisitor","__Visitor"],"trait":["Backend"]};

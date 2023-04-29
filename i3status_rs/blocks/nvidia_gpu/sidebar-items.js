@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["FAN_BTN",""],["FORMAT",""],["MEM_BTN",""],["QUERY",""]],"fn":[["run",""],["set_fan_speed",""]],"struct":[["Config",""],["GpuInfo",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","ERR_MSG","FAN_BTN","FIELDS","FORMAT","MEM_BTN","QUERY"],"enum":["__Field"],"fn":["run","set_fan_speed"],"macro":["parse"],"struct":["Config","GpuInfo","__FieldVisitor","__Visitor"]};

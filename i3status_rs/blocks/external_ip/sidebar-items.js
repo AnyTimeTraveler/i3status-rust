@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["API_ENDPOINT",""]],"fn":[["run",""]],"struct":[["Config",""],["IPAddressInfo",""]]};
+window.SIDEBAR_ITEMS = {"constant":["API_ENDPOINT","BRANCHES","FIELDS"],"enum":["__Field"],"fn":["run"],"struct":["Config","IPAddressInfo","__FieldVisitor","__Visitor"],"type":["UpdatesStream"]};

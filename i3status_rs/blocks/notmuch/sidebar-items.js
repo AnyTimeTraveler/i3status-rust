@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["run",""],["run_query",""]],"struct":[["Config",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS"],"enum":["__Field"],"fn":["run","run_query"],"struct":["Config","__FieldVisitor","__Visitor"]};

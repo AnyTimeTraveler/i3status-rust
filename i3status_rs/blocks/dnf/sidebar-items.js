@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["get_update_count",""],["get_updates_list",""],["has_matching_update",""],["run",""]],"struct":[["Config",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS"],"enum":["__Field"],"fn":["get_update_count","get_updates_list","has_matching_update","run"],"struct":["Config","__FieldVisitor","__Visitor"]};

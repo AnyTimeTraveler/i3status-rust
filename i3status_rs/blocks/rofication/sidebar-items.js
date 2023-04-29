@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["rofication_status",""],["run",""]],"struct":[["Config",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS"],"enum":["__Field"],"fn":["rofication_status","run"],"struct":["Config","__FieldVisitor","__Visitor"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["DeviceKind",""],["SoundDriver",""]],"fn":[["run",""]],"mod":[["alsa",""],["pulseaudio",""]],"struct":[["Config",""]],"trait":[["SoundDevice",""]]};
+window.SIDEBAR_ITEMS = {"constant":["BRANCHES","FIELDS","VARIANTS"],"enum":["DeviceKind","SoundDriver","__Field"],"fn":["run"],"mod":["alsa","pulseaudio"],"struct":["Config","__FieldVisitor","__Visitor"],"trait":["SoundDevice"],"type":["DeviceType"]};

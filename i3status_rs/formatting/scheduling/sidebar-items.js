@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["manage_widgets_updates",""],["single_block_next_update",""]]};
+window.SIDEBAR_ITEMS = {"fn":["manage_widgets_updates","next_update","single_block_next_update"],"struct":["State"]};

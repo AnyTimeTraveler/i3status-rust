@@ -116,7 +116,7 @@ impl Icons {
         } else {
             let file = util::find_file(file, Some("icons"), Some("toml"))
                 .or_error(|| format!("Icon set '{}' not found", file))?;
-            Ok(Icons(util::deserialize_toml_file(&file)?))
+            Ok(Icons(util::deserialize_toml_file(file)?))
         }
     }
 

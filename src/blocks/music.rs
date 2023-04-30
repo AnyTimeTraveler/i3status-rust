@@ -403,18 +403,6 @@ impl Player {
     async fn next(&self) -> Result<()> {
         self.player_proxy.next().await.error("next() failed")
     }
-
-    async fn seek(&self, offset: i64) -> Result<()> {
-        match self.player_proxy.seek(offset).await {
-            Err(zbus::Error::MethodError(e, _, _))
-                if e == "org.freedesktop.DBus.Error.NotSupported" =>
-            {
-                // TODO show this error somehow
-                Ok(())
-            }
-            other => dbg!(other).error("seek() failed"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

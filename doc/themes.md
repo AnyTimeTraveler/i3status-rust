@@ -1,76 +1,73 @@
-The bar can be themed either by specifying a pre-complied theme or overriding defaults in the configuration.  
-We differentiate between themes and icon sets.
-
 ## Choosing your theme and icon set
 To use a theme or icon set other than the default, add them to your configuration file like so:
 ```toml
+[theme]
 theme = "solarized-dark"
+[icons]
 icons = "awesome"
 ```
-NOTE: If you plan on overriding parts of the theme/icon set then you will need to change your config file like so:
+Both the theme and icon set can be loaded from a separate file. 
 ```toml
 [theme]
-name = "solarized-dark"
+theme = "<file>"
 [icons]
-name = "awesome"
-```
-
-Both theme and an icon set can be loaded from a separate file. 
-```toml
-[theme]
-file = "<file>"
-[icons]
-file = "<file_2>"
+icons = "<file>"
 ```
 where `<file>` can be either a filename or a full path and will be checked in this order:
 
 1. If full path given, then use it as is: `/home/foo/custom_theme.toml`
-2. If filename given, e.g. "custom_theme.toml", then first check `XDG_CONFIG_HOME/i3status-rust/themes`
-3. Then look for it in `~/.local/share/i3status-rust/themes`
+2. If filename given, e.g. "custom_theme.toml", then first check `$XDG_CONFIG_HOME/i3status-rust/themes`
+3. Then look for it in `$XDG_DATA_HOME/i3status-rust/themes`
 4. Otherwise look for it in `/usr/share/i3status-rust/themes`
 
 Notes:
 - In case with icon sets, the file should be in `icons` subdirectory instead of `themes`.
 - You can omit the `.toml` extension while specifying `file` parameter.
-- `file` parameter is an alias to `name`, they are completely interchangeable.
-- All the standard themes are provides in files, so you can take them as examples of how to write your own themes/icon sets.
+- All the predefined themes are provided as files, so you use them as examples of how to write your own themes/icon sets.
 
 # Available themes
+
+Note: screenshots were generated using [this config](https://github.com/greshake/i3status-rust/blob/master/gen-screenshots/screenshot_config.toml) with [this swaybar config](https://github.com/greshake/i3status-rust/blob/master/gen-screenshots/swayconfig_i3rs).
 
 * `plain` (default)
 ![plain](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/plain.png)
 * `solarized-dark`
-![solarized-dark](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/solarized_dark.png)
+![solarized-dark](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/solarized-dark.png)
 * `solarized-light`
-![solarized-light](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/solarized_light.png)
+![solarized-light](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/solarized-light.png)
 * `slick`
 ![slick](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/slick.png)
 * `modern`
 ![modern](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/modern.png)
 * `bad-wolf`
-![bad-wolf](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/bad_wolf.png)
+![bad-wolf](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/bad-wolf.png)
 * `gruvbox-light`
-![gruvbox-light](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/gruvbox_light.png)
+![gruvbox-light](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/gruvbox-light.png)
 * `gruvbox-dark`
-![gruvbox-dark](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/gruvbox_dark.png)
+![gruvbox-dark](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/gruvbox-dark.png)
 * `space-villain`
-![space-villain](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/space_villain.png)
+![space-villain](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/space-villain.png)
 * `native` (like plain with no background and native separators)
 ![native](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/native.png)
 * `semi-native` (like native but with background)
-//TODO add an image
+![semi-native](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/semi-native.png)
 * `nord-dark` (polar night)
 ![nord-dark](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/nord-dark.png)
+* `dracula`
+![dracula](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/dracula.png)
+* `srcery`
+![srcery](https://raw.githubusercontent.com/greshake/i3status-rust/master/img/themes/srcery.png)
 
 # Available icon sets
 
 * `none` (default. Uses text labels instead of icons)
 * `awesome` (Font Awesome 4.x)
 * `awesome5` (Font Awesome 5.x)
+* `awesome6` (Font Awesome 6.x)
 * `material`
 * `material-nf` (Any font from Nerd Fonts collection)
 
-> **Note**: In order to use the material icon set, you need a patched material icons font which can be found [here](https://gist.github.com/draoncc/3c20d8d4262892ccd2e227eefeafa8ef/raw/3e6e12c213fba1ec28aaa26430c3606874754c30/MaterialIcons-Regular-for-inline.ttf). Make sure to pass it in your i3 configuration bar block.
+ **Note**: In order to use the material icon set, you need a patched material icons font which can be found [here](https://gist.github.com/draoncc/3c20d8d4262892ccd2e227eefeafa8ef/raw/3e6e12c213fba1ec28aaa26430c3606874754c30/MaterialIcons-Regular-for-inline.ttf). Make sure to pass it in your i3 configuration bar block.
 
 ## Overriding themes and icon sets
 
@@ -78,13 +75,19 @@ Create a block in the configuration called `theme` or `icons` like so:
 
 ```toml
 [theme]
-name = "solarized-dark"
+theme = "solarized-dark"
 [theme.overrides]
+# Example: redefine `idle` colors
 idle_bg = "#123456"
 idle_fg = "#abcdef"
+# Example: swap `good` and `warning` colors
+good_fg = { link = "warning_fg" }
+good_bg = { link = "warning_bg" }
+warning_fg = { link = "good_fg" }
+warning_bg = { link = "good_bg" }
 
 [icons]
-name = "awesome"
+icons = "awesome"
 [icons.overrides]
 bat = " | | "
 bat_full = " |X| "
@@ -92,9 +95,7 @@ bat_charging = " |^| "
 bat_discharging = " |v| "
 ```
 
-Example configurations can be found as `example_theme.toml` and `example_icon.toml`.
-
-Besides global overrides you may also use per-block overrides using the `theme_overrides` and `icons_format` options available for all blocks.
+Besides global overrides you may also use per-block overrides using the `theme_overrides`, `icons_overrides` and `icons_format` options available for all blocks.
 For example:
 ```toml
 [[block]]
@@ -103,6 +104,9 @@ icons_format = "{icon}" # Remove spaces aroud icons for this block.
 [block.theme_overrides]
 idle_bg = "#123456"
 idle_fg = "#abcdef"
+[block.icons_overrides]
+cpu_boost_on = "ON"
+cpu_boost_off = "OFF"
 ```
 
 # Available theme overrides
@@ -113,21 +117,22 @@ The tints are added to every second block counting from the right. They will the
 
 Feel free to take a look at the provided color schemes for reference.
 
-* `alternating_tint_bg`
-* `alternating_tint_fg`
-* `critical_bg`
-* `critical_fg`
-* `good_bg`
-* `good_fg`
 * `idle_bg`
 * `idle_fg`
+* `good_bg`
+* `good_fg`
+* `warning_bg`
+* `warning_fg`
+* `critical_bg`
+* `critical_fg`
 * `info_bg`
 * `info_fg`
+* `alternating_tint_bg`
+* `alternating_tint_fg`
 * `separator_bg`
 * `separator_fg`
 * `separator`
-* `warning_bg`
-* `warning_fg`
+* `end_separator`
 
 # Available icon overrides
 

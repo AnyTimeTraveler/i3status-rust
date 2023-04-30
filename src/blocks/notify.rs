@@ -1,176 +1,192 @@
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Instant;
+//! Display and toggle the state of notifications daemon
+//!
+//! Right now only `dunst` is supported.
+//!
+//! Left-clicking on this block will enable/disable notifications.
+//!
+//! # Configuration
+//!
+//! Key | Values | Default
+//! ----|--------|--------
+//! `driver` | Which notifications daemon is running. Available drivers are: `"dunst"` and `"swaync"` | `"dunst"`
+//! `format` | A string to customise the output of this block. See below for available placeholders. | `" $icon "`
+//!
+//! Placeholder | Value                                      | Type   | Unit
+//! ------------|--------------------------------------------|--------|-----
+//! `icon`      | Icon based on notification's state         | Icon   | -
+//! `paused`    | Present only if notifications are disabled | Flag   | -
+//!
+//! # Examples
+//!
+//! How to use `paused` flag
+//!
+//! ```toml
+//! [[block]]
+//! block = "notify"
+//! format = " $icon {$paused{Off}|On} "
+//! ```
+//!
+//! # Icons Used
+//! - `bell`
+//! - `bell-slash`
 
-use crossbeam_channel::Sender;
-use dbus::ffidisp::stdintf::org_freedesktop_dbus::{Properties, PropertiesPropertiesChanged};
-use dbus::ffidisp::{BusType, Connection};
-use dbus::message::SignalArgs;
-use serde_derive::Deserialize;
+use super::prelude::*;
+use zbus::dbus_proxy;
+use zbus::PropertyStream;
 
-use crate::blocks::{Block, ConfigBlock, Update};
-use crate::config::SharedConfig;
-use crate::errors::*;
-use crate::formatting::value::Value;
-use crate::formatting::FormatTemplate;
-use crate::protocol::i3bar_event::{I3BarEvent, MouseButton};
-use crate::scheduler::Task;
-use crate::widgets::text::TextWidget;
-use crate::widgets::I3BarWidget;
+const ICON_ON: &str = "bell";
+const ICON_OFF: &str = "bell-slash";
 
-// TODO
-// Add driver option so can choose between dunst, mako, etc.
-
-pub struct Notify {
-    id: usize,
-    paused: Arc<Mutex<i64>>,
-    format: FormatTemplate,
-    output: TextWidget,
+#[derive(Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct Config {
+    driver: DriverType,
+    format: FormatConfig,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-#[serde(deny_unknown_fields, default)]
-pub struct NotifyConfig {
-    /// Format string which describes the output of this block.
-    pub format: FormatTemplate,
+#[derive(Deserialize, Debug, SmartDefault)]
+#[serde(rename_all = "lowercase")]
+enum DriverType {
+    #[default]
+    Dunst,
+    SwayNC,
 }
 
-impl Default for NotifyConfig {
-    fn default() -> Self {
-        Self {
-            // display just the bell icon
-            format: FormatTemplate::default(),
+pub async fn run(config: Config, mut api: CommonApi) -> Result<()> {
+    let mut widget = Widget::new().with_format(config.format.with_default(" $icon ")?);
+
+    let mut driver: Box<dyn Driver> = match config.driver {
+        DriverType::Dunst => Box::new(DunstDriver::new().await?),
+        DriverType::SwayNC => Box::new(SwayNCDriver::new().await?),
+    };
+
+    loop {
+        let is_paused = driver.is_paused().await?;
+        widget.set_values(map!(
+            "icon" => Value::icon(api.get_icon(if is_paused { ICON_OFF } else { ICON_ON })?),
+            [if is_paused] "paused" => Value::flag(),
+        ));
+        api.set_widget(&widget).await?;
+
+        loop {
+            select! {
+                x = driver.wait_for_change() => {
+                    x?;
+                    break;
+                }
+                event = api.event() => match event {
+                    UpdateRequest => break,
+                    Click(click) => {
+                        if click.button == MouseButton::Left {
+                            driver.set_paused(!is_paused).await?;
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-impl ConfigBlock for Notify {
-    type Config = NotifyConfig;
+#[async_trait]
+trait Driver {
+    async fn is_paused(&self) -> Result<bool>;
+    async fn set_paused(&self, paused: bool) -> Result<()>;
+    async fn wait_for_change(&mut self) -> Result<()>;
+}
 
-    fn new(
-        id: usize,
-        block_config: Self::Config,
-        shared_config: SharedConfig,
-        send: Sender<Task>,
-    ) -> Result<Self> {
-        let c = Connection::get_private(BusType::Session).block_error(
-            "notify",
-            &"Failed to establish D-Bus connection".to_string(),
-        )?;
+struct DunstDriver {
+    proxy: DunstDbusProxy<'static>,
+    changes: PropertyStream<'static, bool>,
+}
 
-        let p = c.with_path(
-            "org.freedesktop.Notifications",
-            "/org/freedesktop/Notifications",
-            5000,
-        );
-        let initial_state: bool = p.get("org.dunstproject.cmd0", "paused").block_error(
-            "notify",
-            &"Failed to get dunst state. Is it running?".to_string(),
-        )?;
-
-        let icon = if initial_state { "bell-slash" } else { "bell" };
-
-        // TODO: revisit this lint
-        #[allow(clippy::mutex_atomic)]
-        let state = Arc::new(Mutex::new(initial_state as i64));
-        let state_copy = state.clone();
-
-        thread::Builder::new()
-            .name("notify".into())
-            .spawn(move || {
-                let c = Connection::get_private(BusType::Session)
-                    .expect("Failed to establish D-Bus connection in thread");
-
-                let matched_signal = PropertiesPropertiesChanged::match_str(
-                    Some(&"org.freedesktop.Notifications".into()),
-                    None,
-                );
-                c.add_match(&matched_signal).unwrap();
-                loop {
-                    for msg in c.incoming(1000) {
-                        if let Some(signal) = PropertiesPropertiesChanged::from_message(&msg) {
-                            let value = signal.changed_properties.get("paused").unwrap();
-                            let status = &value.0.as_i64().unwrap();
-                            let mut paused = state_copy.lock().unwrap();
-                            *paused = *status;
-
-                            // Tell block to update now.
-                            send.send(Task {
-                                id,
-                                update_time: Instant::now(),
-                            })
-                            .unwrap();
-                        }
-                    }
-                }
-            })
-            .unwrap();
-
-        Ok(Notify {
-            id,
-            paused: state,
-            format: block_config.format.with_default("")?,
-            output: TextWidget::new(id, 0, shared_config).with_icon(icon)?,
+impl DunstDriver {
+    async fn new() -> Result<Self> {
+        let dbus_conn = new_dbus_connection().await?;
+        let proxy = DunstDbusProxy::new(&dbus_conn)
+            .await
+            .error("Failed to create DunstDbusProxy")?;
+        Ok(Self {
+            changes: proxy.receive_paused_changed().await,
+            proxy,
         })
     }
 }
 
-impl Block for Notify {
-    fn id(&self) -> usize {
-        self.id
+#[async_trait]
+impl Driver for DunstDriver {
+    async fn is_paused(&self) -> Result<bool> {
+        self.proxy.paused().await.error("Failed to get 'paused'")
     }
 
-    fn update(&mut self) -> Result<Option<Update>> {
-        let paused = *self
-            .paused
-            .lock()
-            .block_error("notify", "failed to acquire lock for `state`")?;
-
-        let values = map!(
-            "state" => Value::from_string(paused.to_string())
-        );
-
-        self.output.set_texts(self.format.render(&values)?);
-
-        let icon = if paused == 1 { "bell-slash" } else { "bell" };
-        self.output.set_icon(icon)?;
-
-        Ok(None)
+    async fn set_paused(&self, paused: bool) -> Result<()> {
+        self.proxy
+            .set_paused(paused)
+            .await
+            .error("Failed to set 'paused'")
     }
 
-    // Returns the view of the block, comprised of widgets.
-    fn view(&self) -> Vec<&dyn I3BarWidget> {
-        vec![&self.output]
-    }
-
-    fn click(&mut self, e: &I3BarEvent) -> Result<()> {
-        if let MouseButton::Left = e.button {
-            let c = Connection::get_private(BusType::Session).block_error(
-                "notify",
-                &"Failed to establish D-Bus connection".to_string(),
-            )?;
-
-            let p = c.with_path(
-                "org.freedesktop.Notifications",
-                "/org/freedesktop/Notifications",
-                5000,
-            );
-
-            let paused = *self
-                .paused
-                .lock()
-                .block_error("notify", "failed to acquire lock")?;
-
-            if paused == 1 {
-                p.set("org.dunstproject.cmd0", "paused", false)
-                    .block_error("notify", &"Failed to query D-Bus".to_string())?;
-            } else {
-                p.set("org.dunstproject.cmd0", "paused", true)
-                    .block_error("notify", &"Failed to query D-Bus".to_string())?;
-            }
-
-            // block will auto-update due to monitoring the bus
-        }
+    async fn wait_for_change(&mut self) -> Result<()> {
+        self.changes.next().await;
         Ok(())
     }
+}
+
+#[dbus_proxy(
+    interface = "org.dunstproject.cmd0",
+    default_service = "org.freedesktop.Notifications",
+    default_path = "/org/freedesktop/Notifications"
+)]
+trait DunstDbus {
+    #[dbus_proxy(property, name = "paused")]
+    fn paused(&self) -> zbus::Result<bool>;
+    #[dbus_proxy(property, name = "paused")]
+    fn set_paused(&self, value: bool) -> zbus::Result<()>;
+}
+struct SwayNCDriver {
+    proxy: SwayNCDbusProxy<'static>,
+    changes: SubscribeStream<'static>,
+}
+
+impl SwayNCDriver {
+    async fn new() -> Result<Self> {
+        let dbus_conn = new_dbus_connection().await?;
+        let proxy = SwayNCDbusProxy::new(&dbus_conn)
+            .await
+            .error("Failed to create SwayNCDbusProxy")?;
+        Ok(Self {
+            changes: proxy
+                .receive_subscribe()
+                .await
+                .error("Failed to create SubscribeStream")?,
+            proxy,
+        })
+    }
+}
+
+#[async_trait]
+impl Driver for SwayNCDriver {
+    async fn is_paused(&self) -> Result<bool> {
+        self.proxy.get_dnd().await.error("Failed to 'GetDnd'")
+    }
+
+    async fn set_paused(&self, paused: bool) -> Result<()> {
+        self.proxy.set_dnd(paused).await.error("Failed to 'SetDnd'")
+    }
+
+    async fn wait_for_change(&mut self) -> Result<()> {
+        self.changes.next().await;
+        Ok(())
+    }
+}
+
+#[dbus_proxy(
+    interface = "org.erikreider.swaync.cc",
+    default_service = "org.freedesktop.Notifications",
+    default_path = "/org/erikreider/swaync/cc"
+)]
+trait SwayNCDbus {
+    fn get_dnd(&self) -> zbus::Result<bool>;
+    fn set_dnd(&self, value: bool) -> zbus::Result<()>;
+    #[dbus_proxy(signal)]
+    fn subscribe(&self, value: bool) -> zbus::Result<()>;
 }
